@@ -1,6 +1,6 @@
 # Charlie
 
-A new Flutter project.
+An app that allows you to find places to recycle.
 
 ## Getting Started
 

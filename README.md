@@ -1,6 +1,6 @@
 # Charlie
 
-An app that allows you to find places to recycle
+An app that allows you to find places to recycle.
 
 ## Getting Started
 

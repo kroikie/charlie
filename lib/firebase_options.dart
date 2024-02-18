@@ -17,11 +17,17 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      return web;
+      throw UnsupportedError(
+        'DefaultFirebaseOptions have not been configured for web - '
+        'you can reconfigure this by running the FlutterFire CLI again.',
+      );
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        return android;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for android - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.iOS:
         return ios;
       case TargetPlatform.macOS:
@@ -46,31 +52,13 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyAajkEaZwpNfDwnzi36ncFKQQg6y-EqChk',
-    appId: '1:100724612618:web:362cdac8ac17ae0a8189f3',
-    messagingSenderId: '100724612618',
-    projectId: 'charlie-6d4ab',
-    authDomain: 'charlie-6d4ab.firebaseapp.com',
-    storageBucket: 'charlie-6d4ab.appspot.com',
-    measurementId: 'G-Q8LLY7FL4C',
-  );
-
-  static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyC4f_7RN_T4cz21frSh6QpDijZUZj6OcJ8',
-    appId: '1:100724612618:android:d32e9cf28e778a6f8189f3',
-    messagingSenderId: '100724612618',
-    projectId: 'charlie-6d4ab',
-    storageBucket: 'charlie-6d4ab.appspot.com',
-  );
-
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyDWjvtl7opThDB11JCvsEBhXotEb-0ZNDQ',
-    appId: '1:100724612618:ios:377022ae0e69ab158189f3',
+    appId: '1:100724612618:ios:a1f81e1073ec19b68189f3',
     messagingSenderId: '100724612618',
     projectId: 'charlie-6d4ab',
     storageBucket: 'charlie-6d4ab.appspot.com',
-    iosClientId: '100724612618-d17pbon2pv6bm9vodcsei2ehbp5bn2vf.apps.googleusercontent.com',
-    iosBundleId: 'com.example.myapp',
+    iosClientId: '100724612618-s5nsdaj8ebfuic94hsolihq7jbkbqngj.apps.googleusercontent.com',
+    iosBundleId: 'com.ool.charlie',
   );
 }

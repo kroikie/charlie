@@ -49,7 +49,7 @@ class CompanyItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => GoRouter.of(context).go('/details/${company.id}'),
+      onTap: () => GoRouter.of(context).go('/details/${company.id}', extra: company),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Row(

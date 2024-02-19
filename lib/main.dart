@@ -27,7 +27,8 @@ final GoRouter _router = GoRouter(
         GoRoute(
           path: 'details/:companyId',
           builder: (BuildContext context, GoRouterState state) {
-            return DetailScreen(companyId: state.pathParameters['companyId']!);
+            final wasteCompany = state.extra as WasteCompany;
+            return DetailScreen(company: wasteCompany);
           }
         )
       ]

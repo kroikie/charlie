@@ -1,7 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../charlieutil.dart';
 import '../models/company.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -15,9 +17,22 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(title),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.login),
-            onPressed: () => GoRouter.of(context).push('/login'),
+          StreamBuilder(
+              stream: FirebaseAuth.instance.authStateChanges(),
+              builder: (context, streamSnapsoht) {
+                if (streamSnapsoht.hasData && streamSnapsoht.data != null) {
+                  return IconButton(
+                    icon: const Icon(Icons.logout),
+                    onPressed: () {
+                      FirebaseAuth.instance.signOut();
+                    },
+                  );
+                }
+                return IconButton(
+                  icon: const Icon(Icons.login),
+                  onPressed: () => GoRouter.of(context).push('/login'),
+                );
+              }
           ),
           IconButton(
             icon: const Icon(Icons.filter_list),
@@ -37,6 +52,28 @@ class HomeScreen extends StatelessWidget {
           },
         ),
       ),
+      floatingActionButton: StreamBuilder(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData && snapshot.data != null) {
+            return FutureBuilder(
+                future: CharlieUtil.isAdmin(),
+                builder: (context, futureSnapshot) {
+                  if (futureSnapshot.hasData && futureSnapshot.data == true) {
+                    return FloatingActionButton(
+                      onPressed: () {
+                        // TODO: Go to "Add New Company" screen
+                      },
+                      child: const Icon(Icons.add),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                }
+            );
+          }
+          return const SizedBox.shrink();
+        },
+      )
     );
   }
 }

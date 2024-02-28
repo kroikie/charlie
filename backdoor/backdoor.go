@@ -14,7 +14,24 @@ import (
 )
 
 func main() {
-	ctx := context.Background()
+	SetClaims(context.Background(), "GpJKHNYEeQRD84Y8Ql5hQCH7ucp1")
+}
+
+func SetClaims(ctx context.Context, userId string) {
+	app, err := firebase.NewApp(ctx, nil)
+	if err != nil {
+		log.Fatalf("error initializing app: %v\n", err)
+	}
+	auth, _ := app.Auth(ctx)
+	err = auth.SetCustomUserClaims(ctx, userId, map[string]interface{}{
+		"user-type": "admin",
+	})
+	if err != nil {
+		log.Fatalf("error setting custom claims: %v\n", err)
+	}
+}
+
+func WriteCompanies(ctx context.Context) {
 	app, err := firebase.NewApp(ctx, nil)
 	if err != nil {
 		log.Fatalf("error initializing app: %v\n", err)

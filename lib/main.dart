@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:go_router/go_router.dart';
 import 'package:myapp/models/company.dart';
 import 'package:myapp/screens/DetailScreen.dart';
+import 'package:myapp/screens/EditScreen.dart';
 import 'package:myapp/screens/HomeScreen.dart';
 import 'package:myapp/screens/LoginScreen.dart';
 import 'package:provider/provider.dart';
@@ -29,7 +30,17 @@ final GoRouter _router = GoRouter(
           builder: (BuildContext context, GoRouterState state) {
             final wasteCompany = state.extra as WasteCompany;
             return DetailScreen(company: wasteCompany);
-          }
+          },
+          routes: <RouteBase>[
+            GoRoute(
+              name: 'edit_company',
+              path: 'edit',
+              builder: (BuildContext context, GoRouterState state) {
+                final wasteCompany = state.extra as WasteCompany;
+                return EditScreen(company: wasteCompany);
+              }
+            )
+          ],
         )
       ]
     ),

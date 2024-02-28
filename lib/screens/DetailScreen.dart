@@ -1,5 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:myapp/charlieutil.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import '../models/company.dart';
@@ -20,6 +22,30 @@ class DetailScreen extends StatelessWidget {
         leading: BackButton(
           onPressed: () => GoRouter.of(context).pop(),
         ),
+        actions: [
+          StreamBuilder(
+            stream: FirebaseAuth.instance.authStateChanges(),
+            builder: (context, streamSnapshot) {
+              if (streamSnapshot.hasData && streamSnapshot.data != null) {
+                return FutureBuilder(
+                  future: CharlieUtil.isAdmin(),
+                  builder: (context, futureSnapshot) {
+                    if (futureSnapshot.hasData && futureSnapshot.data == true) {
+                      return IconButton(
+                        onPressed: () {
+                          GoRouter.of(context).pushNamed('edit_company', pathParameters: {'companyId': company.id},extra: company);
+                        },
+                        icon: const Icon(Icons.edit),
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  },
+                );
+              }
+              return const SizedBox.shrink();
+            }
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.only(top: 8.0, left: 8.0),

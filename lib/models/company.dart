@@ -12,11 +12,11 @@ class WasteCompanyModel {
 
 class WasteCompany {
   String id;
-  final String name;
-  final String address;
-  final String type;
-  final String phone;
-  final GeoPoint location;
+  String name;
+  String address;
+  String type;
+  String phone;
+  GeoPoint location;
 
   WasteCompany({
     required this.id,
@@ -27,7 +27,7 @@ class WasteCompany {
     required this.location,
   });
 
-  WasteCompany.fromJson(String id, Map<String, Object?> json): this(
+  WasteCompany.fromJson(String id, Map<String, dynamic> json): this(
     id: id,
     name: json['name'] as String,
     address: json['address'] as String,

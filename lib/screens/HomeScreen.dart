@@ -61,9 +61,7 @@ class HomeScreen extends StatelessWidget {
                 builder: (context, futureSnapshot) {
                   if (futureSnapshot.hasData && futureSnapshot.data == true) {
                     return FloatingActionButton(
-                      onPressed: () {
-                        // TODO: Go to "Add New Company" screen
-                      },
+                      onPressed: () => GoRouter.of(context).pushNamed('add_company'),
                       child: const Icon(Icons.add),
                     );
                   }

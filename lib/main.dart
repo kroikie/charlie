@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:go_router/go_router.dart';
 import 'package:myapp/models/company.dart';
+import 'package:myapp/screens/AddScreen.dart';
 import 'package:myapp/screens/DetailScreen.dart';
 import 'package:myapp/screens/EditScreen.dart';
 import 'package:myapp/screens/HomeScreen.dart';
@@ -20,35 +21,43 @@ void main() async {
 final GoRouter _router = GoRouter(
   routes: <RouteBase>[
     GoRoute(
+      name: 'home',
       path: '/',
       builder: (BuildContext context, GoRouterState state) {
         return const HomeScreen(title: 'Charlie',);
       },
       routes: <RouteBase>[
         GoRoute(
+          name: 'detail',
           path: 'details/:companyId',
           builder: (BuildContext context, GoRouterState state) {
-            final wasteCompany = state.extra as WasteCompany;
-            return DetailScreen(company: wasteCompany);
+            return DetailScreen(companyId: state.pathParameters['companyId']!);
           },
           routes: <RouteBase>[
             GoRoute(
               name: 'edit_company',
               path: 'edit',
               builder: (BuildContext context, GoRouterState state) {
-                final wasteCompany = state.extra as WasteCompany;
-                return EditScreen(company: wasteCompany);
+                return EditScreen(companyId: state.pathParameters['companyId']!);
               }
             )
           ],
-        )
+        ),
+        GoRoute(
+          name: 'add_company',
+          path: 'add',
+          builder: (BuildContext context, GoRouterState state) {
+            return const AddScreen();
+          }
+        ),
       ]
     ),
     GoRoute(
-        path: '/login',
-        builder: (BuildContext context, GoRouterState state) {
-          return LoginScreen();
-        }
+      name: 'login',
+      path: '/login',
+      builder: (BuildContext context, GoRouterState state) {
+        return LoginScreen();
+      }
     ),
   ]
 );

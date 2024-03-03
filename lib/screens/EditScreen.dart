@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:myapp/charlieutil.dart';
 
 import '../models/company.dart';
 
@@ -85,7 +86,7 @@ class EditScreen extends StatelessWidget {
 class CompanyForm extends StatelessWidget {
   final WasteCompany? company;
   late final nameController = TextEditingController(text: company != null ? company!.name : '');
-  late final typeController = TextEditingController(text: company != null ? company!.type : '');
+  late final typeController = TextEditingController(text: company != null ? company!.wasteTypes.map((wasteType) => wasteType.label).join(", ") : '');
   late final phoneController = TextEditingController(text: company != null ? company!.phone : '');
   late final addressController = TextEditingController(text: company != null ? company!.address : '');
   late final latController = TextEditingController(text: company != null ? company!.location.latitude.toString() : '');
@@ -111,13 +112,35 @@ class CompanyForm extends StatelessWidget {
             validator: companyStringValidator,
           ),
           const SizedBox(height: 10,),
-          TextFormField(
-            controller: typeController,
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              labelText: 'Recycling Type',
-            ),
-            validator: companyStringValidator,
+          Row(
+            children: [
+              Expanded(
+                child: TextFormField(
+                  controller: typeController,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Waste Types',
+                  ),
+                  readOnly: true,
+                  maxLines: null,
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.edit),
+                onPressed: () async {
+                  final wasteChoice = await _buildWasteChoiceDialog(
+                      context,
+                      company == null ? [] : List.from(company!.wasteTypes)
+                  );
+                  if (wasteChoice != null) {
+                    if (company != null) {
+                      company!.wasteTypes = wasteChoice;
+                    }
+                    typeController.text = wasteChoice.map((wasteType) => wasteType.label).toList().join(', ');
+                  }
+                }
+              ),
+            ],
           ),
           const SizedBox(height: 10,),
           TextFormField(
@@ -167,7 +190,11 @@ class CompanyForm extends StatelessWidget {
                       id: company != null ? company!.id : 'default_id',
                       name: nameController.text,
                       address: addressController.text,
-                      type: typeController.text,
+                      wasteTypes: company != null ?
+                          company!.wasteTypes :
+                          typeController.text.split(', ').map((str) {
+                            return WasteType.fromLabel(str);
+                          }).toList(),
                       phone: phoneController.text,
                       location: GeoPoint(
                         double.parse(latController.text),
@@ -190,6 +217,41 @@ class CompanyForm extends StatelessWidget {
               child: const Text('SAVE')),
         ],
       )
+    );
+  }
+
+  Future<List<WasteType>?> _buildWasteChoiceDialog(BuildContext context, List<WasteType> wasteChoices) {
+    return showDialog<List<WasteType>?>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Company Waste'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: WasteFilterList(wasteTypeSelections: wasteChoices),
+          ),
+          actions: [
+            TextButton(
+              style: TextButton.styleFrom(
+                textStyle: Theme.of(context).textTheme.labelLarge,
+              ),
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                textStyle: Theme.of(context).textTheme.labelLarge,
+              ),
+              child: const Text('Apply'),
+              onPressed: () {
+                Navigator.of(context).pop(wasteChoices);
+              },
+            ),
+          ],
+        );
+      }
     );
   }
 

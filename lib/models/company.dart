@@ -1,20 +1,27 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:myapp/charlieutil.dart';
 
 class WasteCompanyModel {
-  Stream<List<WasteCompany>> get stream => FirebaseFirestore.instance.collection('companies')
-      .withConverter(
-        fromFirestore: (snapshot, _) => WasteCompany.fromJson(snapshot.id, snapshot.data()!),
-        toFirestore: (company, _) => company.toJson()
-      )
-      .orderBy('name')
-      .snapshots().map((event) => event.docs.map((ele) => ele.data()).toList());
+
+  static Query generateQuery(List<WasteType>? wasteTypes) {
+    var companyQuery = FirebaseFirestore.instance.collection('companies')
+        .orderBy('name');
+
+    if (wasteTypes != null && wasteTypes.isNotEmpty) {
+      companyQuery = companyQuery.where('waste_types',
+          arrayContainsAny: wasteTypes.map((wasteType) => wasteType.name).toList());
+    }
+
+    return companyQuery;
+  }
+
 }
 
 class WasteCompany {
   String id;
   String name;
   String address;
-  String type;
+  List<WasteType> wasteTypes;
   String phone;
   GeoPoint location;
 
@@ -22,7 +29,7 @@ class WasteCompany {
     required this.id,
     required this.name,
     required this.address,
-    required this.type,
+    required this.wasteTypes,
     required this.phone,
     required this.location,
   });
@@ -31,7 +38,9 @@ class WasteCompany {
     id: id,
     name: json['name'] as String,
     address: json['address'] as String,
-    type: json['waste_type'] as String,
+    wasteTypes: (json['waste_types'] as List<dynamic>).map((wasteTypeName) {
+      return WasteType.fromName(wasteTypeName);
+    }).toList(),
     phone: json['phone'] as String,
     location: json['location'] as GeoPoint
   );
@@ -40,7 +49,9 @@ class WasteCompany {
     return {
       'name': name,
       'address': address,
-      'waste_type': type,
+      'waste_types': wasteTypes.map<String>((wasteType) {
+        return wasteType.name;
+      }),
       'phone': phone,
       'location': location
     };

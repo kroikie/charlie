@@ -71,13 +71,22 @@ class DetailScreen extends StatelessWidget {
                 children: [
                   ListTile(
                       leading: const Icon(Icons.business),
-                      title: Text(company.name)),
+                      title: Text(company.name)
+                  ),
                   ListTile(
-                      leading: const Icon(Icons.recycling),
-                      title: Text(company.type)),
+                    leading: const Icon(Icons.recycling),
+                    title: Text(company.wasteTypes.map((wasteType) => wasteType.label).join(", ")),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: company.wasteTypes.map<Widget>((wasteType) {
+                        return Icon(CharlieUtil.getWasteIcon(wasteType));
+                      }).toList(),
+                    ),
+                  ),
                   ListTile(
                       leading: const Icon(Icons.phone),
-                      title: Text(company.phone)),
+                      title: Text(company.phone)
+                  ),
                   ListTile(
                     leading: const Icon(Icons.location_on_outlined),
                     title: Text(company.address),

@@ -1,21 +1,28 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../charlieutil.dart';
 import '../models/company.dart';
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key, required this.title});
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
 
-  final String title;
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  var companyQuery = WasteCompanyModel.generateQuery(null);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(title),
+        title: const Text('De Right Place'),
         actions: [
           StreamBuilder(
               stream: FirebaseAuth.instance.authStateChanges(),
@@ -36,21 +43,52 @@ class HomeScreen extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.filter_list),
-            onPressed: () => _buildFilterDialog(context),
+            onPressed: () async {
+              final prefs = await SharedPreferences.getInstance();
+              final storedFilter = prefs.getStringList('wasteTypeFilter');
+              if (!context.mounted) return;
+              final filterChoice = await _buildFilterDialog(
+                  context,
+                  storedFilter != null ?
+                    storedFilter.map((wasteTypeName) => WasteType.fromName(wasteTypeName)).toList() :
+                    []
+              );
+              setState(() {
+                if (filterChoice != null && filterChoice.isNotEmpty) {
+                  companyQuery = WasteCompanyModel.generateQuery(filterChoice);
+                  prefs.setStringList('wasteTypeFilter', filterChoice.map((wasteType) => wasteType.name).toList());
+                } else {
+                  companyQuery = WasteCompanyModel.generateQuery(null);
+                  prefs.remove('wasteTypeFilter');
+                }
+              });
+            },
           )
         ],
       ),
-      body: Center(
-        child: Consumer<List<WasteCompany>>(
-          builder: (_, companies, __) {
-            return ListView.builder(
-              itemCount: companies.length,
-              itemBuilder: (BuildContext context, int index) {
-                return CompanyItem(company: companies[index]);
-              },
+      body: StreamBuilder<List<WasteCompany>>(
+        stream: companyQuery
+            .withConverter(
+              fromFirestore: (snapshot, _) => WasteCompany.fromJson(snapshot.id, snapshot.data()!),
+              toFirestore: (company, _) => company.toJson()
+            )
+            .snapshots().map((event) => event.docs.map((ele) => ele.data()).toList()),
+        builder: (context, streamSnapshot) {
+          if (streamSnapshot.hasData && streamSnapshot.data != null) {
+            return Center(
+              child: ListView.builder(
+                itemCount: streamSnapshot.data!.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return CompanyItem(company: streamSnapshot.data![index]);
+                },
+              ),
             );
-          },
-        ),
+          } else {
+            return const Center(
+              child: Text('loading...'),
+            );
+          }
+        }
       ),
       floatingActionButton: StreamBuilder(
         stream: FirebaseAuth.instance.authStateChanges(),
@@ -84,14 +122,16 @@ class CompanyItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => GoRouter.of(context).go('/details/${company.id}', extra: company),
+      onTap: () => GoRouter.of(context).go('/details/${company.id}'),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Row(
           children: [
             Padding(
               padding: const EdgeInsets.only(right: 8.0),
-              child: Icon(getWasteIcon(company.type)),
+              child: company.wasteTypes.length > 1 ?
+                  const Icon(Icons.recycling) :
+                  Icon(CharlieUtil.getWasteIcon(company.wasteTypes[0])),
             ),
             Flexible(
               child: Text(
@@ -103,52 +143,19 @@ class CompanyItem extends StatelessWidget {
       ),
     );
   }
-
-  IconData getWasteIcon(String wasteType) {
-    switch(wasteType) {
-      case "Bulky Waste":
-        return Icons.local_shipping;
-      case "E Waste":
-        return Icons.electric_bolt;
-      case "Batteries":
-        return Icons.battery_charging_full;
-      case "Used Cooking Oil":
-        return Icons.soup_kitchen;
-      case "Beverage Containers":
-        return Icons.local_drink;
-      case "Organic Waste":
-        return Icons.grass;
-      case "Paper Waste":
-        return Icons.feed;
-      case "Car Oil":
-        return Icons.local_gas_station;
-      case "Flourescent Bulbs/Tubes":
-        return Icons.light_mode;
-      default:
-        return Icons.recycling;
-    }
-  }
 }
 
-Future<void> _buildFilterDialog(BuildContext context) {
-  return showDialog<void>(
+Future<List<WasteType>?> _buildFilterDialog(BuildContext context, List<WasteType> recyclingFilter) async {
+
+  return showDialog<List<WasteType>?>(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
 
-        title: const Text('Filter Recycling Types'),
-        content: Column(
-          children: [
-            ListTile(
-              title: const Text('Bulky Waste'),
-              leading: Radio<String>(
-                value: 'Bulky Waste',
-                groupValue: '',
-                onChanged: (String? str) {
-                },
-              ),
-            ),
-          ],
+        title: const Text('Filter Waste Types'),
+        content: SizedBox(
+            width: double.maxFinite,
+            child: WasteFilterList(wasteTypeSelections: recyclingFilter,)
         ),
         actions: [
           TextButton(
@@ -166,7 +173,7 @@ Future<void> _buildFilterDialog(BuildContext context) {
             ),
             child: const Text('Apply'),
             onPressed: () {
-              Navigator.of(context).pop();
+              Navigator.of(context).pop(recyclingFilter);
             },
           ),
         ],

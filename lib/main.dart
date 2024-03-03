@@ -24,7 +24,7 @@ final GoRouter _router = GoRouter(
       name: 'home',
       path: '/',
       builder: (BuildContext context, GoRouterState state) {
-        return const HomeScreen(title: 'Charlie',);
+        return const HomeScreen();
       },
       routes: <RouteBase>[
         GoRoute(
@@ -68,12 +68,8 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return StreamProvider<List<WasteCompany>>(
-      initialData: const [],
-      create: (_) => WasteCompanyModel().stream,
-      child: MaterialApp.router(
-          routerConfig: _router
-      ),
+    return MaterialApp.router(
+        routerConfig: _router
     );
   }
 }
